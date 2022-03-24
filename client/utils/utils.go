@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"../../common/message"
+	"chatRoom/common/message"
 	_ "encoding/binary"
 	"encoding/json"
 	"errors"
@@ -9,6 +9,7 @@ import (
 	"net"
 )
 
+// ReadPkg 从conn读取数据并判断是否有丢包/粘包,转换成message返回
 func ReadPkg(conn net.Conn) (mes message.Message, err error) {
 
 	buf := make([]byte, 8096)
@@ -45,6 +46,7 @@ func WritePkg(conn net.Conn, data []byte) (err error) {
 
 	//发送data本身
 	n, err := conn.Write(data)
+	fmt.Println(n, pkgLen)
 	if n != pkgLen || err != nil {
 		fmt.Println("conn.Write(bytes) fail", err)
 		return
