@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"chatRoom/client/clientProcess"
 	"chatRoom/common/message"
 	"encoding/json"
 	"fmt"
@@ -46,6 +47,11 @@ func Login(userID int, userPWD string) (err error) {
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
 		fmt.Println("登录成功")
+		//需要一个协程不停读取服务器发送的信息
+
+		for {
+			clientProcess.ShowMenu()
+		}
 	} else if loginResMes.Code == 500 {
 		fmt.Println(loginResMes.Error)
 	}
