@@ -2,7 +2,7 @@ package severProcess
 
 import (
 	"chatRoom/common/message"
-	//"chatRoom/server/model"
+	"chatRoom/server/model"
 	"chatRoom/server/utils"
 	"encoding/json"
 	"fmt"
@@ -130,7 +130,22 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 
 	//我们需要到redis数据库去完成验证.
 	//1.使用model.MyUserDao 到redis去验证
-	//user, err := model.MyUserDao.Login(loginMes.UserId, loginMes.UserPwd)
+	_, err = model.UDAO.CheckPWD(loginMes.ID, loginMes.UserPWD)
+	if err != nil {
+		if err == model.USERNOTEXITS {
+			loginResMes.Code = 500
+			loginResMes.Error = err.Error()
+		} else if err == model.USERPWDERROR {
+			loginResMes.Code = 403
+			loginResMes.Error = err.Error()
+		} else {
+			loginResMes.Code = 505
+			loginResMes.Error = "服务器内部错误..."
+		}
+	} else {
+		loginResMes.Code = 200
+		fmt.Println("登录成功")
+	}
 	//
 	//if err != nil {
 	//
@@ -162,14 +177,14 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	//}
 
 	//如果用户id=123， 密码=456, 认为合法，否则不合法
-	if loginMes.ID == 123 && loginMes.UserPWD == "456" {
-		//合法
-		loginResMes.Code = 200
-	} else {
-		//不合法
-		loginResMes.Code = 500 // 500 状态码，表示该用户不存在
-		loginResMes.Error = "该用户不存在, 请注册再使用..."
-	}
+	//if loginMes.ID == 123 && loginMes.UserPWD == "456" {
+	//	//合法
+	//	loginResMes.Code = 200
+	//} else {
+	//	//不合法
+	//	loginResMes.Code = 500 // 500 状态码，表示该用户不存在
+	//	loginResMes.Error = "该用户不存在, 请注册再使用..."
+	//}
 
 	//3将 loginResMes 序列化
 	data, err := json.Marshal(loginResMes)

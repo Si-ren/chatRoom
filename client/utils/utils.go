@@ -13,7 +13,7 @@ import (
 func ReadPkg(conn net.Conn) (mes message.Message, err error) {
 
 	buf := make([]byte, 8096)
-	fmt.Println("读取客户端发送的数据...")
+	fmt.Println("读取服户端发送的数据...")
 	//conn.Read 在conn没有被关闭的情况下，才会阻塞
 	//如果客户端关闭了 conn 则，就不会阻塞
 

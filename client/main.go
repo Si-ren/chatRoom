@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chatRoom/client/utils"
+	"chatRoom/client/clientProcess"
 	"fmt"
 	"os"
 )
@@ -35,11 +35,11 @@ func main() {
 			fmt.Println("请输入用户的密码")
 			fmt.Scanf("%s\n", &userPWD)
 
-			err := utils.Login(userID, userPWD)
+			err := clientProcess.Login(userID, userPWD)
 			if err != nil {
 				fmt.Println("登录失败")
 			} else {
-				fmt.Println("登录成功")
+				//fmt.Println("登录成功")
 			}
 
 		case 2:

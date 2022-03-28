@@ -1,7 +1,7 @@
-package utils
+package clientProcess
 
 import (
-	"chatRoom/client/clientProcess"
+	"chatRoom/client/utils"
 	"chatRoom/common/message"
 	"encoding/json"
 	"fmt"
@@ -42,7 +42,7 @@ func Login(userID int, userPWD string) (err error) {
 	}
 
 	//从conn读取数据并转换成message
-	mes, err = ReadPkg(conn)
+	mes, err = utils.ReadPkg(conn)
 	var loginResMes message.RegisterResMes
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
@@ -50,9 +50,9 @@ func Login(userID int, userPWD string) (err error) {
 		//需要一个协程不停读取服务器发送的信息
 
 		for {
-			clientProcess.ShowMenu()
+			ShowMenu()
 		}
-	} else if loginResMes.Code == 500 {
+	} else {
 		fmt.Println(loginResMes.Error)
 	}
 	return
