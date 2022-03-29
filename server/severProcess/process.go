@@ -29,11 +29,11 @@ func (this *Processor) ServerProcessMes(mes *message.Message) (err error) {
 		}
 		err = up.ServerProcessLogin(mes)
 	case message.RegisterMesType:
-		//处理注册
-		//up := &process2.UserProcess{
-		//	Conn: this.Conn,
-		//}
-		//err = up.ServerProcessRegister(mes) // type : data
+		//创建一个UserProcess实例
+		up := &UserProcess{
+			Conn: this.Conn,
+		}
+		err = up.ServerProcessLogin(mes)
 	case message.SmsMesType:
 		////创建一个SmsProcess实例完成转发群聊消息.
 		//smsProcess := &process2.SmsProcess{}

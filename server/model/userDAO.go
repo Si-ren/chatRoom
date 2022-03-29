@@ -1,6 +1,7 @@
 package model
 
 import (
+	"chatRoom/common/message"
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
@@ -61,5 +62,28 @@ func (receiver *UserDAO) CheckPWD(userID int, userPWD string) (bool, error) {
 	}
 	fmt.Println("check user successful")
 	return true, nil
+}
 
+func (receiver *UserDAO) Register(user *message.User) (err error) {
+
+	//先从UserDao 的连接池中取出一根连接
+	conn := receiver.pool.Get()
+	defer conn.Close()
+	_, err = receiver.GetUserByID(conn, user.ID)
+	if err == nil {
+		err = USEREXITS
+		return
+	}
+	//这时，说明id在redis还没有，则可以完成注册
+	data, err := json.Marshal(user) //序列化
+	if err != nil {
+		return
+	}
+	//入库
+	_, err = conn.Do("HSet", "users", user.ID, string(data))
+	if err != nil {
+		fmt.Println("保存注册用户错误 err=", err)
+		return
+	}
+	return
 }

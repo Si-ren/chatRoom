@@ -44,7 +44,15 @@ func main() {
 
 		case 2:
 			fmt.Println("注册用户")
-			exitFlag = true
+			fmt.Println("注册用户")
+			fmt.Println("请输入用户id:")
+			fmt.Scanf("%d\n", &userID)
+			fmt.Println("请输入用户密码:")
+			fmt.Scanf("%s\n", &userPWD)
+			fmt.Println("请输入用户名字(nickname):")
+			fmt.Scanf("%s\n", &userName)
+			//2. 调用UserProcess，完成注册的请求、
+			clientProcess.Register(userID, userPWD)
 		case 3:
 			fmt.Println("退出系统")
 			os.Exit(0)
@@ -54,7 +62,5 @@ func main() {
 		if exitFlag {
 			break
 		}
-
 	}
-
 }

@@ -17,6 +17,10 @@ type Message struct {
 	Data string `json:"data"`
 }
 
+type RegisterMes struct {
+	User User `json:"user"` //类型就是User结构体.
+}
+
 // RegisterResMes 服务端返回注册信息
 type RegisterResMes struct {
 	Code  int    `json:"code"`  // 返回状态码 400 表示该用户已经占有 200表示注册成功

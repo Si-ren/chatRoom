@@ -54,38 +54,43 @@ func (this *UserProcess) NotifyMeOnline(userId int) {
 		return
 	}
 }
+*/
 
 func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error) {
-
-	//1.先从mes 中取出 mes.Data ，并直接反序列化成RegisterMes
-	var registerMes message.RegisterMes
+	//核心代码...
+	//1. 先从mes 中取出 mes.Data ，并直接反序列化成LoginMes
+	var registerMes message.User
 	err = json.Unmarshal([]byte(mes.Data), &registerMes)
 	if err != nil {
 		fmt.Println("json.Unmarshal fail err=", err)
 		return
 	}
-
 	//1先声明一个 resMes
 	var resMes message.Message
 	resMes.Type = message.RegisterResMesType
+	//2在声明一个 RegisterResMes，并完成赋值
 	var registerResMes message.RegisterResMes
 
 	//我们需要到redis数据库去完成注册.
-	//1.使用model.MyUserDao 到redis去验证
-	err = model.MyUserDao.Register(&registerMes.User)
+	err = model.UDAO.Register(&registerMes)
 
 	if err != nil {
-		if err == model.ERROR_USER_EXISTS {
-			registerResMes.Code = 505
-			registerResMes.Error = model.ERROR_USER_EXISTS.Error()
+		if err == model.USERNOTEXITS {
+			registerResMes.Code = 500
+			registerResMes.Error = err.Error()
+		} else if err == model.USERPWDERROR {
+			registerResMes.Code = 403
+			registerResMes.Error = err.Error()
 		} else {
-			registerResMes.Code = 506
-			registerResMes.Error = "注册发生未知错误..."
+			registerResMes.Code = 505
+			registerResMes.Error = "服务器内部错误..."
 		}
 	} else {
 		registerResMes.Code = 200
+		fmt.Println("注册成功")
 	}
 
+	//3将 loginResMes 序列化
 	data, err := json.Marshal(registerResMes)
 	if err != nil {
 		fmt.Println("json.Marshal fail", err)
@@ -108,9 +113,7 @@ func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error)
 	}
 	err = tf.WritePkg(data)
 	return
-
 }
-*/
 
 // ServerProcessLogin 处理登录请求
 func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
@@ -146,45 +149,6 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 		loginResMes.Code = 200
 		fmt.Println("登录成功")
 	}
-	//
-	//if err != nil {
-	//
-	//	if err == model.ERROR_USER_NOTEXISTS {
-	//		loginResMes.Code = 500
-	//		loginResMes.Error = err.Error()
-	//	} else if err == model.ERROR_USER_PWD {
-	//		loginResMes.Code = 403
-	//		loginResMes.Error = err.Error()
-	//	} else {
-	//		loginResMes.Code = 505
-	//		loginResMes.Error = "服务器内部错误..."
-	//	}
-	//
-	//} else {
-	//	loginResMes.Code = 200
-	//	//这里，因为用户登录成功，我们就把该登录成功的用放入到userMgr中
-	//	//将登录成功的用户的userId 赋给 this
-	//	this.UserId = loginMes.UserId
-	//	userMgr.AddOnlineUser(this)
-	//	//通知其它的在线用户， 我上线了
-	//	this.NotifyOthersOnlineUser(loginMes.UserId)
-	//	//将当前在线用户的id 放入到loginResMes.UsersId
-	//	//遍历 userMgr.onlineUsers
-	//	for id, _ := range userMgr.onlineUsers {
-	//		loginResMes.UsersId = append(loginResMes.UsersId, id)
-	//	}
-	//	fmt.Println(user, "登录成功")
-	//}
-
-	//如果用户id=123， 密码=456, 认为合法，否则不合法
-	//if loginMes.ID == 123 && loginMes.UserPWD == "456" {
-	//	//合法
-	//	loginResMes.Code = 200
-	//} else {
-	//	//不合法
-	//	loginResMes.Code = 500 // 500 状态码，表示该用户不存在
-	//	loginResMes.Error = "该用户不存在, 请注册再使用..."
-	//}
 
 	//3将 loginResMes 序列化
 	data, err := json.Marshal(loginResMes)
