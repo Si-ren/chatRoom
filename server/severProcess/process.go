@@ -34,9 +34,14 @@ func (this *Processor) ServerProcessMes(mes *message.Message) (err error) {
 		}
 		err = up.ServerProcessRegister(mes)
 	case message.SmsMesType:
-		//创建一个SmsProcess实例完成转发群聊消息.
-		//smsProcess := serv
-		//smsProcess.SendGroupMes(mes)
+	//创建一个SmsProcess实例完成转发群聊消息.
+	//smsProcess := serv
+	//smsProcess.SendGroupMes(mes)
+	case message.LogoutMesType:
+		up := &UserProcess{
+			Conn: this.Conn,
+		}
+		err = up.ServerProcessLogout(mes)
 	default:
 		fmt.Println("消息类型不存在，无法处理...")
 	}

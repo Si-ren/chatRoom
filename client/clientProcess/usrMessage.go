@@ -13,16 +13,25 @@ var onlineUsers map[int]*message.User = make(map[int]*message.User, 10)
 //编写一个方法，处理返回的NotifyUserStatusMes
 func updateUserStatus(notifyUserStatusMes *message.NotifyUserStatusMes) {
 
-	//适当优化
-	user, ok := onlineUsers[notifyUserStatusMes.UserID]
-	if !ok { //原来没有
-		user = &message.User{
-			UserID: notifyUserStatusMes.UserID,
+	//适当优化,这边应该可以先判断notifyUserStatusMes.Status然后再做逻辑
+	switch notifyUserStatusMes.Status {
+	case message.UserOnline:
+		user, ok := onlineUsers[notifyUserStatusMes.UserID]
+		if !ok { //原来没有
+			user = &message.User{
+				UserID: notifyUserStatusMes.UserID,
+			}
 		}
+		user.UserStatus = notifyUserStatusMes.Status
+		onlineUsers[notifyUserStatusMes.UserID] = user
+		fmt.Println(notifyUserStatusMes.UserID, "上线了")
+	case message.UserOffline:
+		delete(onlineUsers, notifyUserStatusMes.UserID)
+		fmt.Println(notifyUserStatusMes.UserID, "下线了")
+	default:
+		fmt.Println("unknow NotifyUserStatusMes Type : ", notifyUserStatusMes.Status)
 	}
-	user.UserStatus = notifyUserStatusMes.Status
-	onlineUsers[notifyUserStatusMes.UserID] = user
-	fmt.Println(notifyUserStatusMes.UserID, "上线了")
+
 	//outputOnlineUser()
 }
 

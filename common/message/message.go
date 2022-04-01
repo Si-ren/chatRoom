@@ -3,6 +3,7 @@ package message
 // 消息类型分类
 const (
 	LoginMesType            = "LoginMes"
+	LogoutMesType           = "LogoutMes"
 	LoginResMesType         = "LoginResMes"
 	RegisterMesType         = "RegisterMes"
 	RegisterResMesType      = "RegisterResMes"

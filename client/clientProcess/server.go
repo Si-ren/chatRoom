@@ -37,6 +37,10 @@ func ShowMenu() {
 		fmt.Println("信息列表")
 	case 4:
 		fmt.Println("你选择退出了系统...")
+		err := Logout()
+		if err != nil {
+			break
+		}
 		os.Exit(0)
 	default:
 		fmt.Println("你输入的选项不正确..")

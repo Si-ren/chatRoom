@@ -1,6 +1,7 @@
 package clientProcess
 
 import (
+	"chatRoom/client/model"
 	"chatRoom/client/utils"
 	"chatRoom/common/message"
 	"encoding/json"
@@ -91,6 +92,9 @@ func Login(userID int, userPWD string) (err error) {
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
 		fmt.Println("登录成功")
+		model.CurUser.Conn = conn
+		model.CurUser.UserID = userID
+		model.CurUser.UserStatus = message.UserOnline
 		for _, v := range loginResMes.UsersID {
 			//如果我们要求不显示自己在线,下面我们增加一个代码
 			if v == userID {
@@ -118,4 +122,29 @@ func Login(userID int, userPWD string) (err error) {
 		return
 	}
 	return
+
+}
+
+func Logout() (err error) {
+	var mes message.Message
+	mes.Type = message.LogoutMesType
+
+	var userStatus message.NotifyUserStatusMes
+	userStatus.Status = message.UserOffline
+	userStatus.UserID = model.CurUser.UserID
+
+	data, err := json.Marshal(userStatus)
+	if err != nil {
+		fmt.Println("Logout json.Marshal err: ", err)
+		return
+	}
+	mes.Data = string(data)
+	mes.Len = len(mes.Data) + len(mes.Type)
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("Logout json.Marshal err: ", err)
+		return
+	}
+	err = utils.WritePkg(model.CurUser.Conn, data)
+	return err
 }
