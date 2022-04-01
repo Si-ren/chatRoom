@@ -28,7 +28,6 @@ func GetUserDaoPool() {
 
 func (receiver *UserDAO) GetUserByID(conn redis.Conn, userID int) (user *User, err error) {
 	//hset users 123 "{\"userID\":123,\"userPWD\":\"456\"}"
-	//               "{\"userID\":123,\"userPWD\":\"456\"}"
 	fmt.Println("userID is ", userID)
 	res, err := redis.String(conn.Do("HGet", "users", userID))
 	fmt.Println("res is", res, "err is ", err)
@@ -58,7 +57,7 @@ func (receiver *UserDAO) CheckPWD(userID int, userPWD string) (bool, error) {
 	}
 	if userPWD != user.UserPWD {
 		err = USERPWDERROR
-		return false, nil
+		return false, err
 	}
 	fmt.Println("check user successful")
 	return true, nil
@@ -69,18 +68,24 @@ func (receiver *UserDAO) Register(user *message.User) (err error) {
 	//先从UserDao 的连接池中取出一根连接
 	conn := receiver.pool.Get()
 	defer conn.Close()
-	_, err = receiver.GetUserByID(conn, user.ID)
+	//如果err如果为空
+	_, err = receiver.GetUserByID(conn, user.UserID)
+	fmt.Println(err)
+
 	if err == nil {
 		err = USEREXITS
 		return
 	}
 	//这时，说明id在redis还没有，则可以完成注册
 	data, err := json.Marshal(user) //序列化
+	fmt.Println(err)
+
 	if err != nil {
 		return
 	}
+
 	//入库
-	_, err = conn.Do("HSet", "users", user.ID, string(data))
+	_, err = conn.Do("HSet", "users", user.UserID, string(data))
 	if err != nil {
 		fmt.Println("保存注册用户错误 err=", err)
 		return

@@ -22,8 +22,9 @@ func (this *Transfer) ReadPkg() (mes message.Message, err error) {
 	//如果客户端关闭了 conn 则，就不会阻塞
 	pkgLen, err := this.Conn.Read(this.Buf)
 	if err != nil {
+		//如果关闭了客户端，那么服务端这边就是会收到EOF
 		fmt.Println(err)
-		err = errors.New("read pkg header error")
+		//err = errors.New("read pkg header error")
 		return
 	}
 	fmt.Println(pkgLen)
@@ -38,6 +39,7 @@ func (this *Transfer) ReadPkg() (mes message.Message, err error) {
 	dataLen := len(mes.Data) + len(mes.Type)
 	fmt.Println(dataLen, mes.Len)
 	if dataLen != mes.Len {
+		err = errors.New("pkg lens err")
 		fmt.Println("pkgLen err: ", err)
 		return
 	}

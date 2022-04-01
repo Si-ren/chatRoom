@@ -17,6 +17,12 @@ type Message struct {
 	Data string `json:"data"`
 }
 
+const (
+	UserOnline = iota
+	UserOffline
+	UserBusyStatus
+)
+
 type RegisterMes struct {
 	User User `json:"user"` //类型就是User结构体.
 }
@@ -32,4 +38,10 @@ type LoginResMes struct {
 	Code    int    `json:"code"` // 返回状态码 500 表示该用户未注册 200表示登录成功
 	UsersID []int  // 增加字段，保存用户id的切片
 	Error   string `json:"error"` // 返回错误信息
+}
+
+// NotifyUserStatusMes 配合服务器端推送用户状态变化的消息
+type NotifyUserStatusMes struct {
+	UserID int `json:"userID"` //用户id
+	Status int `json:"status"` //用户的状态
 }

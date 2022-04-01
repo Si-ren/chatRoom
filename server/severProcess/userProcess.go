@@ -13,48 +13,8 @@ type UserProcess struct {
 	//字段
 	Conn net.Conn
 	//增加一个字段，表示该Conn是哪个用户
-	UserId int
+	UserID int
 }
-
-/*
-func (this *UserProcess) NotifyMeOnline(userId int) {
-
-	//组装我们的NotifyUserStatusMes
-	var mes message.Message
-	mes.Type = message.NotifyUserStatusMesType
-
-	var notifyUserStatusMes message.NotifyUserStatusMes
-	notifyUserStatusMes.UserId = userId
-	notifyUserStatusMes.Status = message.UserOnline
-
-	//将notifyUserStatusMes序列化
-	data, err := json.Marshal(notifyUserStatusMes)
-	if err != nil {
-		fmt.Println("json.Marshal err=", err)
-		return
-	}
-	//将序列化后的notifyUserStatusMes赋值给 mes.Data
-	mes.Data = string(data)
-
-	//对mes再次序列化，准备发送.
-	data, err = json.Marshal(mes)
-	if err != nil {
-		fmt.Println("json.Marshal err=", err)
-		return
-	}
-
-	//发送,创建我们Transfer实例，发送
-	tf := &utils.Transfer{
-		Conn: this.Conn,
-	}
-
-	err = tf.WritePkg(data)
-	if err != nil {
-		fmt.Println("NotifyMeOnline err=", err)
-		return
-	}
-}
-*/
 
 func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error) {
 	//核心代码...
@@ -115,6 +75,60 @@ func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error)
 	return
 }
 
+// NotifyOthersOnlineUser 通知所有在线的用户
+func (this *UserProcess) NotifyOthersOnlineUser(userID int) {
+
+	//遍历 onlineUsers, 然后一个一个的发送 NotifyUserStatusMes
+	for id, up := range userMgr.onlineUsers {
+		//过滤到自己
+		if id == userID {
+			continue
+		}
+		//开始通知
+		up.NotifyMeOnline(userID)
+	}
+}
+
+//通知
+func (this *UserProcess) NotifyMeOnline(userID int) {
+
+	//组装我们的NotifyUserStatusMes
+	var mes message.Message
+	mes.Type = message.NotifyUserStatusMesType
+
+	var notifyUserStatusMes message.NotifyUserStatusMes
+	notifyUserStatusMes.UserID = userID
+	notifyUserStatusMes.Status = message.UserOnline
+
+	//将notifyUserStatusMes序列化
+	data, err := json.Marshal(notifyUserStatusMes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+	//将序列化后的notifyUserStatusMes赋值给 mes.Data
+	mes.Data = string(data)
+	mes.Len = len(mes.Data) + len(mes.Type)
+	fmt.Println(mes)
+	//对mes再次序列化，准备发送.
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+
+	//发送,创建我们Transfer实例，发送
+	tf := &utils.Transfer{
+		Conn: this.Conn,
+	}
+
+	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("NotifyMeOnline err=", err)
+		return
+	}
+}
+
 // ServerProcessLogin 处理登录请求
 func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	//核心代码...
@@ -133,7 +147,7 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 
 	//我们需要到redis数据库去完成验证.
 	//1.使用model.MyUserDao 到redis去验证
-	_, err = model.UDAO.CheckPWD(loginMes.ID, loginMes.UserPWD)
+	_, err = model.UDAO.CheckPWD(loginMes.UserID, loginMes.UserPWD)
 	if err != nil {
 		if err == model.USERNOTEXITS {
 			loginResMes.Code = 500
@@ -147,9 +161,17 @@ func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 		}
 	} else {
 		loginResMes.Code = 200
+		this.UserID = loginMes.UserID
+		userMgr.AddOnlineUser(this)
+		this.NotifyOthersOnlineUser(this.UserID)
 		fmt.Println("登录成功")
 	}
 
+	//将当前在线用户的id 放入到loginResMes.UsersId
+	//遍历 userMgr.onlineUsers
+	for id, _ := range userMgr.onlineUsers {
+		loginResMes.UsersID = append(loginResMes.UsersID, id)
+	}
 	//3将 loginResMes 序列化
 	data, err := json.Marshal(loginResMes)
 	if err != nil {

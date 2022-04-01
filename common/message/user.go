@@ -1,6 +1,7 @@
 package message
 
 type User struct {
-	ID      int    `json:"userID"`
-	UserPWD string `json:"userPWD"`
+	UserID     int    `json:"userID"`
+	UserPWD    string `json:"userPWD"`
+	UserStatus int    `json:"userStatus"`
 }

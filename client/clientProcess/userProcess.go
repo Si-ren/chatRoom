@@ -11,7 +11,7 @@ import (
 func Register(userID int, userPWD string) (err error) {
 	//构成用户数据并序列化
 	user := message.User{
-		ID:      userID,
+		UserID:  userID,
 		UserPWD: userPWD,
 	}
 	data, err := json.Marshal(user)
@@ -46,8 +46,6 @@ func Register(userID int, userPWD string) (err error) {
 	err = json.Unmarshal([]byte(mes.Data), &RegisterResMes)
 	if RegisterResMes.Code == 200 {
 		fmt.Println("注册成功")
-		//需要一个协程不停读取服务器发送的信息
-
 	} else {
 		fmt.Println(RegisterResMes.Error)
 	}
@@ -58,7 +56,7 @@ func Register(userID int, userPWD string) (err error) {
 func Login(userID int, userPWD string) (err error) {
 	//构成用户数据并序列化
 	user := message.User{
-		ID:      userID,
+		UserID:  userID,
 		UserPWD: userPWD,
 	}
 	data, err := json.Marshal(user)
@@ -93,13 +91,31 @@ func Login(userID int, userPWD string) (err error) {
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
 		fmt.Println("登录成功")
-		//需要一个协程不停读取服务器发送的信息
+		for _, v := range loginResMes.UsersID {
+			//如果我们要求不显示自己在线,下面我们增加一个代码
+			if v == userID {
+				continue
+			}
 
+			fmt.Println("用户id:\t", v)
+			//完成 客户端的 onlineUsers 完成初始化
+			user := &message.User{
+				UserID:     v,
+				UserStatus: message.UserOnline,
+			}
+			onlineUsers[v] = user
+		}
+		fmt.Print("\n\n")
+		//需要一个协程不停读取服务器发送的信息
+		//该协程保持和服务器端的通讯.如果服务器有数据推送给客户端
+		//则接收并显示在客户端的终端.
+		go serverProcessMes(conn)
 		for {
 			ShowMenu()
 		}
 	} else {
 		fmt.Println(loginResMes.Error)
+		return
 	}
 	return
 }

@@ -29,7 +29,6 @@ func main() {
 		switch key {
 		case 1:
 			fmt.Println("登录聊天室")
-			exitFlag = true
 			fmt.Println("请输入用户的id")
 			fmt.Scanf("%d\n", &userID)
 			fmt.Println("请输入用户的密码")
@@ -40,6 +39,7 @@ func main() {
 				fmt.Println("登录失败")
 			} else {
 				//fmt.Println("登录成功")
+				//exitFlag = true
 			}
 
 		case 2:

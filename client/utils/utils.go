@@ -18,19 +18,21 @@ func ReadPkg(conn net.Conn) (mes message.Message, err error) {
 	//如果客户端关闭了 conn 则，就不会阻塞
 
 	//读取消息内容
-	len, err := conn.Read(buf)
+	pkgLen, err := conn.Read(buf)
 	if err != nil {
 		fmt.Println("conn.Read err: ", err)
 		return
 	}
 
 	//把pkgLen 反序列化成 -> message.Message
-	err = json.Unmarshal(buf[:len], &mes)
+	err = json.Unmarshal(buf[:pkgLen], &mes)
 	if err != nil {
 		fmt.Println("json.Unmarsha err: ", err)
 		return
 	}
-	if len != mes.Len {
+	fmt.Println(mes)
+	pkgLen = len(mes.Data) + len(mes.Type)
+	if mes.Len != pkgLen {
 		err = errors.New("read pkg body error")
 		return
 	}
